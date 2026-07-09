@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/context/AuthContext"; // 👈 Imported our new provider
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -40,11 +40,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} min-h-screen bg-background text-foreground antialiased`}>
-        <AuthProvider> {/* 👈 Wrapped around children nodes */}
+      <body className={`${inter.variable} min-h-screen bg-background text-foreground antialiased font-sans`}>
+        <AuthProvider>
           {children}
         </AuthProvider>
 
+        {/* Note: Ensure global 'section' styles in globals.css are changed to class-based selectors to prevent breaking toast layout */}
         <Toaster
           position="top-right"
           richColors
