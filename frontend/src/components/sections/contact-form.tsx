@@ -4,10 +4,10 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import api from "@/lib/api";
 
 import AnimatedReveal from "@/components/shared/animated-reveal";
 import SectionHeading from "@/components/shared/section-heading";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,23 +26,20 @@ export default function ContactForm() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  });
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  function onSubmit(data: FormData) {
-    console.log(data);
-
-    toast.success("Message sent successfully!");
-
-    reset();
+  async function onSubmit(data: FormData) {
+    try {
+      await api.post("/contact", data);
+      toast.success("Message sent! We'll get back to you soon.");
+      reset();
+    } catch {
+      toast.error("Failed to send message. Please try again.");
+    }
   }
 
   return (
-    <section
-      id="contact"
-      className="container"
-    >
+    <section id="contact" className="landing-section container px-4 sm:px-6">
       <SectionHeading
         eyebrow="Contact"
         title="Let's build something amazing together."
@@ -52,20 +49,17 @@ export default function ContactForm() {
       <AnimatedReveal>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-slate-900/60 p-8 backdrop-blur"
+          className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur sm:rounded-3xl sm:p-8"
         >
-          <div className="grid gap-6 md:grid-cols-2">
-
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <Input
                 placeholder="Your name"
+                className="border-white/10 bg-slate-950 text-white placeholder:text-slate-500"
                 {...register("name")}
               />
-
               {errors.name && (
-                <p className="mt-2 text-sm text-red-500">
-                  {errors.name.message}
-                </p>
+                <p className="mt-1.5 text-xs text-red-400">{errors.name.message}</p>
               )}
             </div>
 
@@ -73,38 +67,33 @@ export default function ContactForm() {
               <Input
                 placeholder="Email address"
                 type="email"
+                className="border-white/10 bg-slate-950 text-white placeholder:text-slate-500"
                 {...register("email")}
               />
-
               {errors.email && (
-                <p className="mt-2 text-sm text-red-500">
-                  {errors.email.message}
-                </p>
+                <p className="mt-1.5 text-xs text-red-400">{errors.email.message}</p>
               )}
             </div>
-
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5">
             <Textarea
-              rows={7}
+              rows={6}
               placeholder="Tell us about your goals..."
+              className="border-white/10 bg-slate-950 text-white placeholder:text-slate-500"
               {...register("message")}
             />
-
             {errors.message && (
-              <p className="mt-2 text-sm text-red-500">
-                {errors.message.message}
-              </p>
+              <p className="mt-1.5 text-xs text-red-400">{errors.message.message}</p>
             )}
           </div>
 
           <Button
-            className="mt-8"
+            className="mt-6 bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 text-white hover:opacity-90"
             size="lg"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Sending..." : "Send Message"}
+            {isSubmitting ? "Sending…" : "Send Message"}
           </Button>
         </form>
       </AnimatedReveal>

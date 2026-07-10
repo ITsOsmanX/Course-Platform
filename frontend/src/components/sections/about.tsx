@@ -46,7 +46,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="container"
+      className="landing-section container px-4 sm:px-6"
     >
       <SectionHeading
         eyebrow="Why Waypoint"

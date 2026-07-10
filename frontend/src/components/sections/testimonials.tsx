@@ -22,7 +22,7 @@ export default function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="container"
+      className="landing-section container px-4 sm:px-6"
     >
       <SectionHeading
         eyebrow="Testimonials"

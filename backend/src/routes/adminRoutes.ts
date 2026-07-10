@@ -6,7 +6,8 @@ import {
   toggleBlockUser, 
   deleteUser, 
   getMessages, 
-  markMessageReplied 
+  markMessageReplied,
+  exportTransactionsCSV
 } from '../controllers/adminController.js';
 
 const router = Router();
@@ -26,5 +27,8 @@ router.delete('/users/:id', deleteUser);
 // Communications Inboxes
 router.get('/messages', getMessages);
 router.patch('/messages/:id/reply', markMessageReplied);
+
+// Transaction CSV Export
+router.get('/transactions/export', exportTransactionsCSV);
 
 export default router;

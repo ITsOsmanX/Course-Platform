@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, exact: true },
+  { label: 'Courses', href: '/admin/courses', icon: BookOpen },
   { label: 'Users', href: '/admin/users', icon: Users },
   { label: 'Transactions', href: '/admin/transactions', icon: CreditCard },
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
