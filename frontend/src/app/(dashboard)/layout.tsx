@@ -3,6 +3,24 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Sidebar from '@/components/dashboard/sidebar';
+import DashboardHeader from '@/components/dashboard/dashboard-header';
+import FloatingChat from '@/components/dashboard/floating-chat';
+import { PageTitleProvider, usePageTitle } from '@/context/PageTitleContext';
+
+function DashboardShell({ children }: { children: React.ReactNode }) {
+  const { title } = usePageTitle();
+  return (
+    <div className="flex min-h-screen bg-slate-950 text-white">
+      <Sidebar />
+      <div className="flex flex-1 flex-col pl-64">
+        <DashboardHeader title={title} />
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      </div>
+      <FloatingChat />
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -10,20 +28,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/auth/login');
+      router.replace('/login');
     }
   }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-700 border-t-white" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-blue-500" />
       </div>
     );
   }
 
-  // Prevent flash content leak during explicit redirection state adjustments
   if (!user) return null;
 
-  return <div className="min-h-screen bg-neutral-950 text-white">{children}</div>;
+  return (
+    <PageTitleProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </PageTitleProvider>
+  );
 }

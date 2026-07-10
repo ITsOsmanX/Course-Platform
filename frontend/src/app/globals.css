@@ -123,3 +123,19 @@ body {
 body {
   min-height: 100vh;
 }
+
+
+@theme {
+  --color-background: #030303;
+  --color-card-glass: rgba(18, 18, 18, 0.6);
+  --color-border-glass: #262626;
+  --color-brand-neon: #00ff66;
+  --color-brand-muted: #a3a3a3;
+}
+
+/* Base body lockup to prevent flash of white */
+body {
+  background-color: var(--color-background);
+  color: #ffffff;
+  font-family: var(--font-sans);
+}

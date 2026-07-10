@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import api, { setInMemoryToken } from '@/lib/api';
 
@@ -28,10 +34,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<'student' | 'admin' | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
+
   const router = useRouter();
 
-  // Helper to establish state locally
+  /**
+   * Save authenticated user state
+   */
   const handleAuthSuccess = (accessToken: string, userData: User) => {
     setInMemoryToken(accessToken);
     setToken(accessToken);
@@ -39,7 +48,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(userData.role);
   };
 
-  // Clear global auth state cleanly
+  /**
+   * Clear authentication state
+   */
   const clearAuthState = () => {
     setInMemoryToken(null);
     setToken(null);
@@ -47,20 +58,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
   };
 
-  // 1. Silent Refresh on App Mount
+  /**
+   * Attempt silent login using refresh token cookie
+   */
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const response = await api.post('/auth/refresh');
-        const { accessToken } = response.data;
-        
-        // Fetch full profile info now that memory has the token
+        const refreshResponse = await api.post('/auth/refresh');
+        const { accessToken } = refreshResponse.data;
+
         setInMemoryToken(accessToken);
+
         const profileResponse = await api.get('/users/profile');
-        
+
         handleAuthSuccess(accessToken, profileResponse.data);
-      } catch (err) {
-        // Silent catch: means cookie is missing/expired, keep user logged out gracefully
+      } catch (error) {
         clearAuthState();
       } finally {
         setIsLoading(false);
@@ -70,46 +82,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initializeAuth();
   }, []);
 
-  // 2. Listen for interceptor broadcasted session expiries
+  /**
+   * Listen for session expiration from Axios interceptor
+   */
   useEffect(() => {
     const handleExpiry = () => {
       clearAuthState();
-      router.push('/auth/login?expired=true');
+      router.push('/login?expired=true');
     };
 
     window.addEventListener('auth-session-expired', handleExpiry);
-    return () => window.removeEventListener('auth-session-expired', handleExpiry);
+
+    return () => {
+      window.removeEventListener('auth-session-expired', handleExpiry);
+    };
   }, [router]);
 
+  /**
+   * Login
+   */
   const login = async (credentials: Record<string, any>) => {
     setIsLoading(true);
+
     try {
+      // ✅ Correct endpoint
       const response = await api.post('/auth/login', credentials);
-      const { accessToken, user: userData } = response.data;
+
+      const {
+        accessToken,
+        user: userData,
+      } = response.data;
+
       handleAuthSuccess(accessToken, userData);
-      
-      // Dynamic Role Routing
+
       if (userData.role === 'admin') {
         router.push('/admin');
       } else {
         router.push('/dashboard');
       }
     } catch (error) {
-      setIsLoading(false);
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
+  /**
+   * Register
+   */
   const register = async (data: Record<string, any>) => {
     setIsLoading(true);
+
     try {
       await api.post('/auth/register', data);
-      
-      // Note: If backend does NOT auto-login upon registration, forward to login.
-      // If it does auto-login, update context state here instead. Assuming explicit login required:
-      router.push('/auth/login?registered=true');
+
+      // (auth) is a route group, so login page is /login
+      router.push('/login?registered=true');
     } catch (error) {
       throw error;
     } finally {
@@ -117,12 +145,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  /**
+   * Logout
+   */
   const logout = async () => {
     setIsLoading(true);
+
     try {
       await api.post('/auth/logout');
-    } catch (err) {
-      console.error('Logout error on server clearing:', err);
+    } catch (error) {
+      console.error('Logout failed:', error);
     } finally {
       clearAuthState();
       router.push('/');
@@ -131,16 +163,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, role, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        role,
+        isLoading,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+
   return context;
 };

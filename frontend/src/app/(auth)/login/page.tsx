@@ -1,62 +1,102 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import Link from 'next/link';
-import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useForm, ControllerRenderProps } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import Link from "next/link";
+import { toast } from "sonner";
+
+import { useAuth } from "@/context/AuthContext";
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
-  const onSubmit = async (values: LoginValues) => {
+  async function onSubmit(values: LoginValues) {
     setIsSubmitting(true);
+
     try {
       await login(values);
-      toast.success('Welcome back!');
+
+      toast.success("Welcome back!");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Invalid email or password.');
+      toast.error(
+        err?.response?.data?.message ??
+          "Invalid email or password."
+      );
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <>
-      <div className="mb-6 space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight text-white">Sign In</h1>
-        <p className="text-sm text-neutral-400">Access your courses and dashboard</p>
+      <div className="mb-8 space-y-2">
+        <h1 className="gradient-text text-4xl font-bold">
+          Welcome Back
+        </h1>
+
+        <p className="text-slate-400">
+          Sign in to continue learning and access your dashboard.
+        </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-5"
+        >
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<LoginValues, "email">;
+            }) => (
               <FormItem>
-                <FormLabel className="text-neutral-300">Email Address</FormLabel>
+                <FormLabel className="text-slate-300">
+                  Email Address
+                </FormLabel>
+
                 <FormControl>
-                  <Input type="email" placeholder="you@example.com" className="bg-neutral-950 border-neutral-800 text-white focus-visible:ring-amber-500" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    className="border-white/10 bg-slate-950 text-white placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-blue-500"
+                    {...field}
+                  />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -65,29 +105,57 @@ export default function LoginPage() {
           <FormField
             control={form.control}
             name="password"
-            render={({ field }) => (
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<LoginValues, "password">;
+            }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel className="text-neutral-300">Password</FormLabel>
-                  <Link href="/auth/forgot-password" className="text-xs text-amber-500 hover:underline">Forgot password?</Link>
+                  <FormLabel className="text-slate-300">
+                    Password
+                  </FormLabel>
+
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-sky-400 transition hover:text-sky-300"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
+
                 <FormControl>
-                  <Input type="password" placeholder="••••••••" className="bg-neutral-950 border-neutral-800 text-white focus-visible:ring-amber-500" {...field} />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    className="border-white/10 bg-slate-950 text-white placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-blue-500"
+                    {...field}
+                  />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" disabled={isSubmitting} className="w-full bg-amber-500 text-neutral-950 hover:bg-amber-400 font-medium mt-2">
-            {isSubmitting ? 'Signing in...' : 'Sign In'}
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="mt-2 w-full bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 text-white transition-all duration-300 hover:opacity-90"
+          >
+            {isSubmitting ? "Signing in..." : "Sign In"}
           </Button>
         </form>
       </Form>
 
-      <p className="mt-6 text-center text-sm text-neutral-400">
-        Don&apos;t have an account?{' '}
-        <Link href="/auth/register" className="text-amber-500 hover:underline">Create account</Link>
+      <p className="mt-8 text-center text-sm text-slate-400">
+        Don't have an account?{" "}
+        <Link
+          href="/register"
+          className="font-medium text-sky-400 transition hover:text-sky-300"
+        >
+          Create account
+        </Link>
       </p>
     </>
   );

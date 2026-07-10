@@ -1,33 +1,69 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import React from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-neutral-950 px-4 py-12 antialiased selection:bg-neutral-800">
-      {/* Decorative Dark Glassmorphism Background Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-indigo-500/10 to-transparent blur-3xl" />
-      <div className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-gradient-to-bl from-amber-500/10 to-transparent blur-3xl" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-12">
+
+      {/* Background Glow */}
+      <div className="absolute inset-0 overflow-hidden">
+
+        <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
+
+        <div className="absolute right-0 top-1/3 h-[30rem] w-[30rem] rounded-full bg-sky-500/10 blur-3xl" />
+
+        <div className="absolute bottom-0 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-violet-600/10 blur-3xl" />
+
+      </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-md z-10"
+        initial={{
+          opacity: 0,
+          y: 30,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        transition={{
+          duration: 0.6,
+        }}
+        className="relative z-10 w-full max-w-md"
       >
-        {/* Branding */}
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-block text-2xl font-bold tracking-tight text-white hover:opacity-90">
-            Waypoint<span className="text-amber-500">Academy</span>
+        {/* Logo */}
+
+        <div className="mb-10 text-center">
+
+          <Link
+            href="/"
+            className="inline-block text-4xl font-bold"
+          >
+            <span className="gradient-text">
+              Waypoint
+            </span>
           </Link>
+
+          <p className="mt-3 text-sm text-slate-400">
+            Modern learning platform for developers & creators.
+          </p>
+
         </div>
 
-        {/* Form Container Card */}
-        <div className="rounded-2xl border border-white/5 bg-neutral-900/40 p-8 backdrop-blur-xl shadow-2xl shadow-black/50">
+        {/* Card */}
+
+        <div className="glass rounded-3xl border border-white/10 p-8 shadow-2xl shadow-blue-950/30">
+
           {children}
+
         </div>
+
       </motion.div>
     </div>
   );
