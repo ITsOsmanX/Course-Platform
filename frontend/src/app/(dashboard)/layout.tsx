@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -10,13 +11,22 @@ import { PageTitleProvider, usePageTitle } from '@/context/PageTitleContext';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const { title } = usePageTitle();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-slate-950 text-white">
-      <Sidebar />
-      <div className="flex flex-1 flex-col pl-64">
-        <DashboardHeader title={title} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      {/* Sidebar — hidden on mobile, always visible on lg+ */}
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Desktop sidebar spacer */}
+      <div className="hidden w-64 flex-shrink-0 lg:block" />
+
+      {/* Main content */}
+      <div className="flex flex-1 flex-col min-w-0">
+        <DashboardHeader title={title} onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
+
       <FloatingChat />
     </div>
   );

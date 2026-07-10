@@ -10,6 +10,8 @@ export interface ICourse extends Document {
   reviewCount: number;
   imageUrl: string;
   tags: string[];
+  isFeatured: boolean;
+  videoUrl?: string;
 }
 
 const CourseSchema: Schema<ICourse> = new Schema(
@@ -53,10 +55,18 @@ const CourseSchema: Schema<ICourse> = new Schema(
       type: String, 
       default: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3' 
     },
-    tags: [{ 
+    tags: [{
       type: String,
       lowercase: true
-    }]
+    }],
+    isFeatured: {
+      type: Boolean,
+      default: false
+    },
+    videoUrl: {
+      type: String,
+      trim: true
+    }
   },
   { 
     timestamps: true 

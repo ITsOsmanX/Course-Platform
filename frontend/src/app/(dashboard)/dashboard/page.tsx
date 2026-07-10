@@ -143,6 +143,7 @@ function SectionHeader({ title, href }: { title: string; href: string }) {
 function PurchasedCourseCard({ course }: { course: { _id: string; title: string; category: string; price: number; imageUrl: string } }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-white/8 bg-slate-900/70 transition hover:-translate-y-1">
+      <Link href={`/dashboard/courses/${course._id}`}>
       <div className="relative h-36 w-full">
         <Image
           src={course.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600'}
@@ -154,8 +155,9 @@ function PurchasedCourseCard({ course }: { course: { _id: string; title: string;
           {course.category}
         </span>
       </div>
+      </Link>
       <div className="p-4">
-        <h4 className="font-semibold text-white line-clamp-2">{course.title}</h4>
+        <Link href={`/dashboard/courses/${course._id}`}><h4 className="font-semibold text-white line-clamp-2">{course.title}</h4></Link>
         <div className="mt-2 flex items-center justify-between">
           <span className="text-sm font-bold text-blue-400">${course.price}</span>
           <div className="flex items-center gap-1 text-xs text-yellow-400">

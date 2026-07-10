@@ -7,7 +7,7 @@ import { Search, SlidersHorizontal, ArrowLeft } from "lucide-react";
 import api from "@/lib/api";
 import type { ApiCourse } from "@/types";
 import CourseCard from "@/components/shared/course-card";
-import Navbar from "@/components/layout/navbar";
+import LandingLayout from "@/components/layout/landing-layout";
 import Footer from "@/components/layout/footer";
 
 const CATEGORIES = ["All", "development", "design", "programming", "ai", "backend", "frontend"];
@@ -62,9 +62,7 @@ export default function PublicCoursesClient() {
   }, [search, category, sort]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 text-white">
-      <Navbar />
-
+    <LandingLayout>
       <main className="flex-1 px-4 py-12 sm:px-6">
         <div className="container mx-auto space-y-8">
           {/* Header */}
@@ -142,8 +140,7 @@ export default function PublicCoursesClient() {
           )}
         </div>
       </main>
-
       <Footer />
-    </div>
+    </LandingLayout>
   );
 }

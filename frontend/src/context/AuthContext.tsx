@@ -16,7 +16,9 @@ interface User {
   email: string;
   role: 'student' | 'admin';
   isBlocked?: boolean;
+  purchaseHistory?: { _id: string }[];
 }
+
 
 interface AuthContextType {
   user: User | null;

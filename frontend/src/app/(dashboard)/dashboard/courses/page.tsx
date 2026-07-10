@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Star, Users, SlidersHorizontal, ShoppingCart, Check } from 'lucide-react';
+import { Search, Star, Users, SlidersHorizontal, ShoppingCart, Check, Play } from 'lucide-react';
 import { useSetPageTitle } from '@/hooks/useSetPageTitle';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import type { ApiCourse } from '@/types';
 
@@ -139,8 +140,10 @@ export default function BrowseCoursesPage() {
 }
 
 function CourseCard({ course }: { course: ApiCourse }) {
+  const { user } = useAuth();
   const { addItem, hasItem } = useCart();
   const inCart = hasItem(course._id);
+  const isPurchased = user?.purchaseHistory?.some((p) => p._id === course._id) ?? false;
   const instructorName = typeof course.instructor === 'object' ? course.instructor.name : 'Instructor';
 
   return (
@@ -156,6 +159,11 @@ function CourseCard({ course }: { course: ApiCourse }) {
           <span className="absolute left-3 top-3 rounded-full bg-blue-600/90 px-2.5 py-0.5 text-[11px] font-medium capitalize text-white">
             {course.category}
           </span>
+          {isPurchased && (
+            <span className="absolute right-3 top-3 rounded-full bg-green-600 px-2.5 py-0.5 text-[11px] font-medium text-white shadow-lg">
+              Purchased
+            </span>
+          )}
         </div>
       </Link>
 
@@ -181,25 +189,49 @@ function CourseCard({ course }: { course: ApiCourse }) {
         <p className="mt-2 text-xs text-slate-500 line-clamp-2 leading-relaxed">{course.description}</p>
 
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-xl font-bold text-blue-400">${course.price}</span>
+          <span className="text-xl font-bold text-blue-400">
+            {isPurchased ? 'Owned' : `$${course.price}`}
+          </span>
           <div className="flex gap-2">
             <Link
               href={`/dashboard/courses/${course._id}`}
-              className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
-            >
-              Details
-            </Link>
-            <button
-              onClick={() => addItem({ courseId: course._id, title: course.title, price: course.price, imageUrl: course.imageUrl, category: course.category })}
-              disabled={inCart}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition ${
-                inCart
-                  ? 'bg-green-600/20 text-green-400 cursor-default'
-                  : 'bg-blue-600 text-white hover:bg-blue-500'
+              className={`rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium transition ${
+                isPurchased
+                  ? 'bg-blue-600 text-white hover:bg-blue-500'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
               }`}
             >
-              {inCart ? <><Check size={12} /> Added</> : <><ShoppingCart size={12} /> Add to Cart</>}
-            </button>
+              {isPurchased ? 'Open' : 'Details'}
+            </Link>
+            {!isPurchased && (
+              <button
+                onClick={() =>
+                  addItem({
+                    courseId: course._id,
+                    title: course.title,
+                    price: course.price,
+                    imageUrl: course.imageUrl,
+                    category: course.category,
+                  })
+                }
+                disabled={inCart}
+                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+                  inCart
+                    ? 'bg-green-600/20 text-green-400 cursor-default'
+                    : 'bg-blue-600 text-white hover:bg-blue-500'
+                }`}
+              >
+                {inCart ? (
+                  <>
+                    <Check size={12} /> Added
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={12} /> Add to Cart
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

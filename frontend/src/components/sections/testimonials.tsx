@@ -30,14 +30,14 @@ export default function Testimonials() {
         description="Our students have gone on to land jobs, launch products, and grow their careers."
       />
 
-      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {testimonials.map((person, index) => (
           <AnimatedReveal
             key={person.id}
             delay={index * 0.1}
           >
             <Card className="h-full rounded-3xl border-white/10 bg-slate-900/60">
-              <CardContent className="flex h-full flex-col p-8">
+              <CardContent className="flex h-full flex-col p-6 sm:p-8">
 
                 <div className="mb-6 flex">
                   {Array.from({ length: 5 }).map((_, i) => (

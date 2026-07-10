@@ -16,6 +16,7 @@ import type { ApiCourse } from "@/types";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import CourseCard from "@/components/shared/course-card";
+import LandingLayout from "@/components/layout/landing-layout";
 import { toast } from "sonner";
 
 export default function PublicCourseDetailPage() {
@@ -68,6 +69,7 @@ export default function PublicCourseDetailPage() {
   };
 
   const inCart = course ? hasItem(course._id) : false;
+  const isPurchased = user?.purchaseHistory?.some((p) => p._id === id) ?? false;
 
   if (loading) {
     return (
@@ -83,9 +85,7 @@ export default function PublicCourseDetailPage() {
     typeof course.instructor === "object" ? course.instructor.name : "Instructor";
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 text-white">
-      <Navbar />
-
+    <LandingLayout>
       <main className="flex-1">
         {/* Hero banner */}
         <div className="relative h-64 w-full overflow-hidden sm:h-80 lg:h-96">
@@ -192,6 +192,7 @@ export default function PublicCourseDetailPage() {
                   inCart={inCart}
                   checkingOut={checkingOut}
                   isLoggedIn={!!user}
+                  isPurchased={isPurchased}
                   onPurchase={handlePurchase}
                   onAddToCart={() =>
                     addItem({
@@ -214,6 +215,7 @@ export default function PublicCourseDetailPage() {
                   inCart={inCart}
                   checkingOut={checkingOut}
                   isLoggedIn={!!user}
+                  isPurchased={isPurchased}
                   onPurchase={handlePurchase}
                   onAddToCart={() =>
                     addItem({
@@ -245,9 +247,8 @@ export default function PublicCourseDetailPage() {
           )}
         </div>
       </main>
-
       <Footer />
-    </div>
+    </LandingLayout>
   );
 }
 
@@ -258,6 +259,7 @@ function PurchaseCard({
   inCart,
   checkingOut,
   isLoggedIn,
+  isPurchased,
   onPurchase,
   onAddToCart,
 }: {
@@ -265,6 +267,7 @@ function PurchaseCard({
   inCart: boolean;
   checkingOut: boolean;
   isLoggedIn: boolean;
+  isPurchased: boolean;
   onPurchase: () => void;
   onAddToCart: () => void;
 }) {
@@ -295,21 +298,34 @@ function PurchaseCard({
         ))}
       </ul>
 
-      <button
-        onClick={onPurchase}
-        disabled={checkingOut}
-        className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {checkingOut ? (
-          <><Loader2 size={16} className="animate-spin" /> Redirecting…</>
-        ) : isLoggedIn ? (
-          "Purchase Course"
-        ) : (
-          <><LogIn size={16} /> Sign in to Purchase</>
-        )}
-      </button>
+      {isPurchased ? (
+        <Link
+          href={`/dashboard/courses/${course._id}`}
+          className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-800 py-3 font-semibold text-white transition hover:bg-slate-700"
+        >
+          <BookOpen size={16} /> Go to Course
+        </Link>
+      ) : (
+        <button
+          onClick={onPurchase}
+          disabled={checkingOut}
+          className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {checkingOut ? (
+            <>
+              <Loader2 size={16} className="animate-spin" /> Redirecting…
+            </>
+          ) : isLoggedIn ? (
+            "Purchase Course"
+          ) : (
+            <>
+              <LogIn size={16} /> Sign in to Purchase
+            </>
+          )}
+        </button>
+      )}
 
-      {isLoggedIn && (
+      {isLoggedIn && !isPurchased && (
         <button
           onClick={onAddToCart}
           disabled={inCart}

@@ -20,7 +20,7 @@ export default function SectionHeading({
 
   return (
     <div
-      className={`flex flex-col ${alignment} mb-16 max-w-3xl mx-auto`}
+      className={`flex flex-col ${alignment} mb-10 mt-16 max-w-3xl mx-auto sm:mb-16 sm:mt-20`}
     >
       {eyebrow && (
         <span className="mb-3 rounded-full border border-sky-500/30 bg-sky-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">

@@ -7,7 +7,11 @@ import {
   deleteUser, 
   getMessages, 
   markMessageReplied,
-  exportTransactionsCSV
+  exportTransactionsCSV,
+  getAllCourses,
+  createCourse,
+  deleteCourse,
+  toggleFeaturedCourse,
 } from '../controllers/adminController.js';
 
 const router = Router();
@@ -30,5 +34,11 @@ router.patch('/messages/:id/reply', markMessageReplied);
 
 // Transaction CSV Export
 router.get('/transactions/export', exportTransactionsCSV);
+
+// Course Management
+router.get('/courses', getAllCourses);
+router.post('/courses', createCourse);
+router.delete('/courses/:id', deleteCourse);
+router.patch('/courses/:id/featured', toggleFeaturedCourse);
 
 export default router;

@@ -12,6 +12,8 @@ export interface ApiCourse {
   reviewCount: number;
   imageUrl: string;
   tags: string[];
+  isFeatured: boolean;
+  videoUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

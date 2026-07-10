@@ -54,7 +54,7 @@ export default function About() {
         description="Every course is designed around practical projects, expert mentorship, and real-world skills that employers value."
       />
 
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
         {features.map((feature, index) => {
           const Icon = feature.icon;
@@ -65,7 +65,7 @@ export default function About() {
               delay={index * 0.1}
             >
               <Card className="glass hover-card h-full rounded-3xl border-white/10">
-                <CardContent className="p-8">
+                <CardContent className="p-5 sm:p-8">
 
                   <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600/15">
                     <Icon className="h-7 w-7 text-blue-400" />
@@ -88,48 +88,25 @@ export default function About() {
       </div>
 
       <AnimatedReveal delay={0.4}>
-        <div className="glass mt-20 rounded-3xl p-12">
-
-          <div className="grid gap-10 text-center md:grid-cols-4">
-
+        <div className="glass mt-16 rounded-2xl p-8 sm:mt-20 sm:rounded-3xl sm:p-12">
+          <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
             <div>
-              <h2 className="text-4xl font-bold text-blue-400">
-                25K+
-              </h2>
-              <p className="mt-2 text-slate-400">
-                Active Students
-              </p>
+              <h2 className="text-3xl font-bold text-blue-400 sm:text-4xl">25K+</h2>
+              <p className="mt-2 text-sm text-slate-400 sm:text-base">Active Students</p>
             </div>
-
             <div>
-              <h2 className="text-4xl font-bold text-blue-400">
-                350+
-              </h2>
-              <p className="mt-2 text-slate-400">
-                Video Lessons
-              </p>
+              <h2 className="text-3xl font-bold text-blue-400 sm:text-4xl">350+</h2>
+              <p className="mt-2 text-sm text-slate-400 sm:text-base">Video Lessons</p>
             </div>
-
             <div>
-              <h2 className="text-4xl font-bold text-blue-400">
-                50+
-              </h2>
-              <p className="mt-2 text-slate-400">
-                Expert Mentors
-              </p>
+              <h2 className="text-3xl font-bold text-blue-400 sm:text-4xl">50+</h2>
+              <p className="mt-2 text-sm text-slate-400 sm:text-base">Expert Mentors</p>
             </div>
-
             <div>
-              <h2 className="text-4xl font-bold text-blue-400">
-                98%
-              </h2>
-              <p className="mt-2 text-slate-400">
-                Student Satisfaction
-              </p>
+              <h2 className="text-3xl font-bold text-blue-400 sm:text-4xl">98%</h2>
+              <p className="mt-2 text-sm text-slate-400 sm:text-base">Satisfaction</p>
             </div>
-
           </div>
-
         </div>
       </AnimatedReveal>
     </section>

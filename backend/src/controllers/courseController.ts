@@ -5,7 +5,7 @@ import { Course } from '../models/Course.js';
 // @route   GET /api/courses
 export const getAllCourses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { search, category, tag, sort } = req.query;
+    const { search, category, tag, sort, featured } = req.query;
     let query: any = {};
     let projection: any = {};
 
@@ -26,10 +26,15 @@ export const getAllCourses = async (req: Request, res: Response): Promise<void> 
       query.tags = (tag as string).toLowerCase();
     }
 
+    // 4. Featured Filter
+    if (featured === 'true') {
+      query.isFeatured = true;
+    }
+
     // Build the base query execution pattern
     let courseQuery = Course.find(query, projection).populate('instructor', 'name email');
 
-    // 4. Advanced Structural Sorting Logic Chain
+    // 5. Advanced Structural Sorting Logic Chain
     if (sort === 'price-low') {
       courseQuery = courseQuery.sort({ price: 1 });
     } else if (sort === 'price-high') {

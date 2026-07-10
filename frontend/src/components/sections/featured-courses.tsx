@@ -15,7 +15,7 @@ export default function FeaturedCourses() {
 
   useEffect(() => {
     api
-      .get("/courses", { params: { sort: "rating" } })
+      .get("/courses", { params: { featured: "true" } })
       .then((r) => setCourses((r.data.courses ?? []).slice(0, 6)))
       .catch(() => setCourses([]))
       .finally(() => setLoading(false));

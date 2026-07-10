@@ -1,4 +1,4 @@
-import Navbar from "@/components/layout/navbar";
+import LandingLayout from "@/components/layout/landing-layout";
 import Hero from "@/components/sections/hero";
 import About from "@/components/sections/about";
 import FeaturedCourses from "@/components/sections/featured-courses";
@@ -8,18 +8,13 @@ import Footer from "@/components/layout/footer";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col">
-      <Navbar />
-
-      <div className="flex-1">
-        <Hero />
-        <About />
-        <FeaturedCourses />
-        <Testimonials />
-        <ContactForm />
-      </div>
-
+    <LandingLayout>
+      <Hero />
+      <About />
+      <FeaturedCourses />
+      <Testimonials />
+      <ContactForm />
       <Footer />
-    </main>
+    </LandingLayout>
   );
 }

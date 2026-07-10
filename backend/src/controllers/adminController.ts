@@ -229,3 +229,98 @@ export const exportTransactionsCSV = async (req: AuthenticatedRequest, res: Resp
     res.status(500).json({ message: 'Failed to generate transactions CSV export file', error: error.message });
   }
 };
+
+// @desc    List all courses (admin view)
+// @route   GET /api/admin/courses
+// @access  Private (Admin Only)
+export const getAllCourses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const courses = await Course.find()
+      .populate('instructor', 'name email')
+      .sort({ createdAt: -1 });
+    res.status(200).json({ count: courses.length, courses });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to retrieve courses', error: error.message });
+  }
+};
+
+// @desc    Create a new course (admin sets themselves as instructor)
+// @route   POST /api/admin/courses
+// @access  Private (Admin Only)
+export const createCourse = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { title, description, category, price, imageUrl, tags, videoUrl } = req.body;
+
+    if (!title || !description || !category || price === undefined) {
+      res.status(400).json({ message: 'title, description, category and price are required.' });
+      return;
+    }
+
+    const course = await Course.create({
+      title: title.trim(),
+      description: description.trim(),
+      category: category.toLowerCase().trim(),
+      price: Number(price),
+      imageUrl: imageUrl?.trim() || undefined,
+      tags: Array.isArray(tags)
+        ? tags.map((t: string) => t.toLowerCase().trim()).filter(Boolean)
+        : typeof tags === 'string'
+        ? tags.split(',').map((t: string) => t.toLowerCase().trim()).filter(Boolean)
+        : [],
+      videoUrl: videoUrl?.trim() || undefined,
+      instructor: req.user?.userId,
+    });
+
+    res.status(201).json({ message: 'Course created successfully', course });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to create course', error: error.message });
+  }
+};
+
+// @desc    Delete a course permanently
+// @route   DELETE /api/admin/courses/:id
+// @access  Private (Admin Only)
+export const deleteCourse = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const course = await Course.findByIdAndDelete(req.params.id);
+    if (!course) {
+      res.status(404).json({ message: 'Course not found' });
+      return;
+    }
+    res.status(200).json({ message: 'Course deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to delete course', error: error.message });
+  }
+};
+
+// @desc    Toggle course featured status
+// @route   PATCH /api/admin/courses/:id/featured
+// @access  Private (Admin Only)
+export const toggleFeaturedCourse = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) {
+      res.status(404).json({ message: 'Course not found' });
+      return;
+    }
+
+    // Check if we would exceed the 6 featured courses limit
+    if (!course.isFeatured) {
+      const featuredCount = await Course.countDocuments({ isFeatured: true });
+      if (featuredCount >= 6) {
+        res.status(400).json({ message: 'Maximum 6 featured courses allowed. Unfeature another course first.' });
+        return;
+      }
+    }
+
+    course.isFeatured = !course.isFeatured;
+    await course.save();
+
+    res.status(200).json({ 
+      message: `Course ${course.isFeatured ? 'featured' : 'unfeatured'} successfully`,
+      course: { id: course.id, isFeatured: course.isFeatured }
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Failed to update course featured status', error: error.message });
+  }
+};

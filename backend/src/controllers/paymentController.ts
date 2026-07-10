@@ -5,14 +5,7 @@ import { Transaction } from '../models/Transaction.js';
 import { User } from '../models/User.js';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.js';
 
-// 💡 CHANGE: Instead of a top-level global instance, use a dynamic helper function
-const getStripeInstance = (): Stripe => {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error('STRIPE_SECRET_KEY is missing from your environment configuration.');
-  }
-  return new Stripe(secretKey);
-};
+// 💡 Stripe is initialized per-request to ensure env vars are fully loaded
 
 // @desc    Create a Stripe Checkout Session for a course purchase
 // @route   POST /api/payments/checkout
@@ -27,14 +20,25 @@ export const createCheckoutSession = async (req: AuthenticatedRequest, res: Resp
       return;
     }
 
+    // Validate Stripe key upfront with a clear error
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) {
+      console.error('❌ STRIPE_SECRET_KEY is not set in environment variables');
+      res.status(500).json({ message: 'Payment system is not configured. Contact support.' });
+      return;
+    }
+
     const course = await Course.findById(courseId);
     if (!course) {
       res.status(404).json({ message: 'Course not found' });
       return;
     }
 
-    // Initialize Stripe dynamically here inside the active execution request
-    const stripe = getStripeInstance();
+    const stripe = new Stripe(stripeKey);
+
+    // Stripe requires images to be absolute HTTPS URLs — sanitize the imageUrl
+    const rawImage = course.imageUrl || '';
+    const safeImages: string[] = rawImage.startsWith('https://') ? [rawImage] : [];
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -45,10 +49,10 @@ export const createCheckoutSession = async (req: AuthenticatedRequest, res: Resp
             currency: 'usd',
             product_data: {
               name: course.title,
-              description: course.description.substring(0, 100) + '...',
-              images: course.imageUrl ? [course.imageUrl] : [],
+              description: course.description.substring(0, 200),
+              ...(safeImages.length > 0 && { images: safeImages }),
             },
-            unit_amount: course.price * 100,
+            unit_amount: Math.round(course.price * 100), // ensure integer cents
           },
           quantity: 1,
         },
@@ -70,7 +74,8 @@ export const createCheckoutSession = async (req: AuthenticatedRequest, res: Resp
 
     res.status(200).json({ url: session.url });
   } catch (error: any) {
-    res.status(500).json({ message: 'Stripe integration breakdown', error: error.message });
+    console.error('❌ Stripe checkout error:', error.message);
+    res.status(500).json({ message: 'Failed to create checkout session', error: error.message });
   }
 };
 
@@ -81,9 +86,7 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
   let event: Stripe.Event;
 
   try {
-    // Initialize Stripe dynamically here as well
-    const stripe = getStripeInstance();
-
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
     event = stripe.webhooks.constructEvent(
       req.body, 
       sig, 

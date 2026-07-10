@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, Users, Tag, ArrowLeft, ShoppingCart, Check, Loader2, BookOpen, Clock } from 'lucide-react';
+import { Star, Users, Tag, ArrowLeft, ShoppingCart, Check, Loader2, BookOpen, Clock, Play } from 'lucide-react';
 import { useSetPageTitle } from '@/hooks/useSetPageTitle';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
-import type { ApiCourse } from '@/types';
+import type { ApiCourse, UserProfile } from '@/types';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { toast } from 'sonner';
 
 export default function CourseDetailPage() {
@@ -18,20 +19,36 @@ export default function CourseDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { addItem, hasItem } = useCart();
+  const { addRecentlyViewed } = useRecentlyViewed();
 
   const [course, setCourse] = useState<ApiCourse | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    api
-      .get(`/courses/${id}`)
-      .then((r) => setCourse(r.data))
+    Promise.all([
+      api.get(`/courses/${id}`),
+      api.get('/users/profile')
+    ])
+      .then(([courseRes, profileRes]) => {
+        setCourse(courseRes.data);
+        setProfile(profileRes.data);
+        // Track recently viewed
+        const c = courseRes.data;
+        addRecentlyViewed({
+          _id: c._id,
+          title: c.title,
+          category: c.category,
+          imageUrl: c.imageUrl,
+          price: c.price,
+        });
+      })
       .catch(() => router.replace('/dashboard/courses'))
       .finally(() => setLoading(false));
-  }, [id, router]);
+  }, [id, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBuyNow = async () => {
     if (!user) {
@@ -51,6 +68,17 @@ export default function CourseDetailPage() {
 
   const inCart = course ? hasItem(course._id) : false;
 
+  // Check if user has purchased this course
+  const isPurchased = profile?.purchaseHistory?.some((p: any) => p._id === id) || false;
+
+  // Helper function to extract YouTube video ID
+  const getYouTubeId = (url: string | undefined): string | null => {
+    if (!url) return null;
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -62,6 +90,7 @@ export default function CourseDetailPage() {
   if (!course) return null;
 
   const instructorName = typeof course.instructor === 'object' ? course.instructor.name : 'Instructor';
+  const youtubeId = getYouTubeId(course.videoUrl);
 
   return (
     <div className="space-y-8">
@@ -118,6 +147,24 @@ export default function CourseDetailPage() {
             <p className="leading-relaxed text-slate-300">{course.description}</p>
           </div>
 
+          {/* YouTube Video Player - Only for purchased courses */}
+          {isPurchased && youtubeId && (
+            <div className="rounded-2xl border border-white/8 bg-slate-900/60 p-6">
+              <h2 className="mb-4 flex items-center gap-2 font-semibold text-white">
+                <Play size={16} className="text-red-500" fill="currentColor" /> Course Video
+              </h2>
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl">
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeId}`}
+                  title={course.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Tags */}
           {course.tags.length > 0 && (
             <div className="rounded-2xl border border-white/8 bg-slate-900/60 p-6">
@@ -156,38 +203,59 @@ export default function CourseDetailPage() {
               ))}
             </ul>
 
-            <button
-              onClick={handleBuyNow}
-              disabled={checkingOut}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {checkingOut ? (
-                <><Loader2 size={16} className="animate-spin" /> Redirecting to Stripe…</>
-              ) : (
-                'Purchase Course'
-              )}
-            </button>
+            {isPurchased ? (
+              <Link
+                href={`/dashboard/courses/${course._id}`}
+                className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-800 py-3 font-semibold text-white transition hover:bg-slate-700"
+              >
+                <Play size={16} /> Start Learning
+              </Link>
+            ) : (
+              <>
+                <button
+                  onClick={handleBuyNow}
+                  disabled={checkingOut}
+                  className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-blue-600 to-violet-600 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {checkingOut ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Redirecting to Stripe…
+                    </>
+                  ) : (
+                    'Purchase Course'
+                  )}
+                </button>
 
-            <button
-              onClick={() =>
-                !inCart &&
-                addItem({
-                  courseId: course._id,
-                  title: course.title,
-                  price: course.price,
-                  imageUrl: course.imageUrl,
-                  category: course.category,
-                })
-              }
-              disabled={inCart}
-              className={`flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition ${
-                inCart
-                  ? 'border-green-500/30 bg-green-600/10 text-green-400 cursor-default'
-                  : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {inCart ? <><Check size={14} /> In Cart</> : <><ShoppingCart size={14} /> Add to Cart</>}
-            </button>
+                <button
+                  onClick={() =>
+                    !inCart &&
+                    addItem({
+                      courseId: course._id,
+                      title: course.title,
+                      price: course.price,
+                      imageUrl: course.imageUrl,
+                      category: course.category,
+                    })
+                  }
+                  disabled={inCart}
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition ${
+                    inCart
+                      ? 'border-green-500/30 bg-green-600/10 text-green-400 cursor-default'
+                      : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  {inCart ? (
+                    <>
+                      <Check size={14} /> In Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={14} /> Add to Cart
+                    </>
+                  )}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
